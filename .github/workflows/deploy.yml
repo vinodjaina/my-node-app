@@ -1,0 +1,17 @@
+name: Deploy to Staging
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: staging  # Match the environment name you created
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Simulate a deployment
+        run: echo "Deploying to staging..."
