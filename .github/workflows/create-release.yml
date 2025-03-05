@@ -10,30 +10,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the repository code
+      # Step 1: Checkout the repository
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2  # This action checks out the code from your repository
 
-      # Set up GitHub CLI for interacting with GitHub API
-      - name: Set up GitHub CLI
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
-      # Create the GitHub Release
+      # Step 2: Create a GitHub Release
       - name: Create GitHub Release
         run: |
+          # Extract the tag name from GITHUB_REF (e.g., refs/tags/v2.0.0)
           TAG_NAME=${GITHUB_REF#refs/tags/}
           RELEASE_NAME="Release $TAG_NAME"
           DESCRIPTION="Release for version $TAG_NAME"
           
-          # GitHub API endpoint for creating a release
+          # Use the GitHub API to create the release
           curl -X POST \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Content-Type: application/json" \
             -d @- \
             https://api.github.com/repos/${{ github.repository }}/releases << EOF
             {
               "tag_name": "$TAG_NAME",
-              "target_commitish": "main",
+              "target_commitish": "main",  # Change this if you're using a different branch
               "name": "$RELEASE_NAME",
               "body": "$DESCRIPTION",
               "draft": false,
