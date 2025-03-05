@@ -3,7 +3,7 @@ name: Create Release
 on:
   push:
     tags:
-      - 'v*'  # This means the workflow will trigger on tags like v1.0.0, v2.1.0, etc.
+      - 'v*'  # Triggers on tags like v1.0.0, v2.0.0, v4.0.0, etc.
 
 jobs:
   create-release:
@@ -12,22 +12,25 @@ jobs:
     steps:
       # Step 1: Checkout the repository
       - name: Checkout code
-        uses: actions/checkout@v2  # This action checks out the code from your repository
+        uses: actions/checkout@v2  # Checks out the code from your repository
 
       # Step 2: Create a GitHub Release
       - name: Create GitHub Release
         run: |
-          # Extract the tag name from GITHUB_REF (e.g., refs/tags/v2.0.0)
+          # Extract the tag name from GITHUB_REF (e.g., refs/tags/v4.0.0)
           TAG_NAME=${GITHUB_REF#refs/tags/}
           RELEASE_NAME="Release $TAG_NAME"
           DESCRIPTION="Release for version $TAG_NAME"
           
           # Use the GitHub API to create the release
-          curl -X POST \
+          echo "Creating release for $TAG_NAME"
+          RESPONSE=$(curl -X POST \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d @- \
-            https://api.github.com/repos/${{ github.repository }}/releases << EOF
+            https://api.github.com/repos/${{ github.repository }}/releases \
+            -w "\nResponse code: %{http_code}\n"  # Output response code for debugging
+            << EOF
             {
               "tag_name": "$TAG_NAME",
               "target_commitish": "main",  # Change this if you're using a different branch
@@ -37,3 +40,5 @@ jobs:
               "prerelease": false
             }
             EOF
+          )
+          echo "API Response: $RESPONSE"
