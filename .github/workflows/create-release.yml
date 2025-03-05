@@ -1,0 +1,42 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # This means the workflow will trigger on tags like v1.0.0, v2.1.0, etc.
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository code
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Set up GitHub CLI for interacting with GitHub API
+      - name: Set up GitHub CLI
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Create the GitHub Release
+      - name: Create GitHub Release
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          RELEASE_NAME="Release $TAG_NAME"
+          DESCRIPTION="Release for version $TAG_NAME"
+          
+          # GitHub API endpoint for creating a release
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -d @- \
+            https://api.github.com/repos/${{ github.repository }}/releases << EOF
+            {
+              "tag_name": "$TAG_NAME",
+              "target_commitish": "main",
+              "name": "$RELEASE_NAME",
+              "body": "$DESCRIPTION",
+              "draft": false,
+              "prerelease": false
+            }
+            EOF
